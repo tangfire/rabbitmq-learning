@@ -1,5 +1,15 @@
 # RabbitMQ
 
+## 参考文章:
+
+[RabbitMQ入门到实战一篇文章就够了](https://blog.csdn.net/u014494148/article/details/136557125)
+
+[RabbitMQ】之解决后台管理页面 Channels 报错提示](https://blog.csdn.net/aiwangtingyun/article/details/109778815)
+
+[docker安装Rabbitmq教程（详细图文）](https://blog.csdn.net/m0_52985087/article/details/135777294)
+
+
+
 ## RabbitMQ入门
 
 ### RabbitMQ是什么?
