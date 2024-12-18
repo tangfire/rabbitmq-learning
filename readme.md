@@ -8,7 +8,13 @@
 
 [docker安装Rabbitmq教程（详细图文）](https://blog.csdn.net/m0_52985087/article/details/135777294)
 
+[2.6日学习打卡----初学RabbitMQ（一）](https://github.com/tangfire/rabbitmq-learning?tab=readme-ov-file)
 
+[2.7日学习打卡----初学RabbitMQ（二）](https://blog.csdn.net/m0_74436895/article/details/136083071?)
+
+[2.8日学习打卡----初学RabbitMQ（三）](https://blog.csdn.net/m0_74436895/article/details/136087920)
+
+[2.9日学习打卡----初学RabbitMQ（四）](https://blog.csdn.net/m0_74436895/article/details/136090230)
 
 ## RabbitMQ入门
 
@@ -225,6 +231,19 @@ spring:
 
 ![helloworld](./imgs/helloworld.png)
 
+P：生产者，也就是要发送消息的程序
+
+C：消费者：消息的接收者，会一直等待消息到来
+
+queue：消息队列，图中黄色部分。类似一个邮箱，可以缓存消息；生产者向其中投递消息，消费者从其中取出消息
+
+
+特点:
+
+1. 一个生产者对应一个消费者，通过队列进行消息传递。
+
+2. 该模式使用direct交换机，direct交换机是RabbitMQ默认交换机
+
 ### 配置队列
 
 ```java
@@ -308,6 +327,19 @@ public class HelloSenderController {
 ## Work Queue
 
 ![workqueue](./imgs/workqueue.png)
+
+
+与简单模式相比，工作队列模式(Work Queue)多了一些消费者，该模式也使用direct交换机，应用于处理消息较多的情况。特点如下：
+
+1. 一个队列对应多个消费者。
+
+2. 一条消息只会被一个消费者消费。
+
+3. 消息队列默认采用轮询的方式将消息平均发送给消费者
+
+`应用场景`: 对于任务过重或任务较多情况使用工作队列可以提高任务处理的速度
+
+
 
 ### 配置队列
 
@@ -417,6 +449,27 @@ public class WorkSenderController {
 ## Publish/Subscribe
 
 ![publish](./imgs/publish.png)
+
+
+P：生产者，也就是要发送消息的程序，但是不再发送到队列中，而是发给X(交换机)
+
+C：消费者，消息的接收者，会一直等待消息到来
+
+Queue：消息队列，接收消息、缓存消息
+
+在开发过程中，有一些消息需要不同消费者进行不同的处理，如电商网站的同一条促销信息需要短信发送、邮件发送、站内信发送等。此时可以使用发布订阅模式(Publish/Subscribe)
+特点：
+
+1. 生产者将消息发送给交换机，交换机将消息转发到绑定此交换机的每个队列中。
+2. 工作队列模式的交换机只能将消息发送给一个队列，发布订阅模式的交换机能将消息发送给多个队列。发布订阅模式使用fanout交换机。
+Exchange：交换机(X)一方面，接收生产者发送的消息。另一方面，知道如何处理消息，例如递交给某个特别队列、 递交给所有队列、或是将消息丢弃。到底如何操作，取决于Exchange的类型。Exchange有常见以下3种类型：
+
+- Fanout：广播，将消息交给所有绑定到交换机的队列
+- Direct：定向，把消息交给符合指定routing key 的队列
+- Topic(常用)：通配符，把消息交给符合routing pattern(路由模式)的队列
+
+Exchange(交换机)只负责转发消息，不具备存储消息的能力，因此如果没有任何队列与 Exchange 绑定，或者没有符合路由规则的队列，那么消息会丢失！
+
 
 ### 配置队列
 
@@ -532,9 +585,34 @@ public class FanoutSenderController {
 
 ```
 
+### 发布订阅模式与工作队列模式的区别
+
+
+1. 工作队列模式不用定义交换机，而发布/订阅模式需要定义交换机
+
+2. 发布/订阅模式的生产方是面向交换机发送消息，工作队列模式的生产方是面向队列发送消息(底层使用 默认交换机)
+
+3. 发布/订阅模式需要设置队列和交换机的绑定，工作队列模式不需要设置，实际上工作队列模式会将队列绑定到默认的交换机
+
+
 ## Routing
 
 ![routing](./imgs/routing.png)
+
+
+使用发布订阅模式时，所有消息都会发送到绑定的队列中，但很多时候，不是所有消息都无差别的发布到所有队列中。比如电商网站的促销活动，双十一大促可能会发布到所有队列；而一些小的促销活动为了节约成本，只发布到站内信队列。此时需要使用路由模式(Routing)完成这一需求。
+
+特点：
+
+1. 每个队列绑定路由关键字RoutingKey
+2. 生产者将带有RoutingKey的消息发送给交换机，交换机根据RoutingKey转发到指定队列。路由模式使用direct交换机。
+
+队列与交换机的绑定，不能是任意绑定了，而是要指定一个 RoutingKey（路由key)
+
+消息的发送方在向 Exchange 发送消息时，也必须指定消息的 RoutingKey
+
+Exchange 不再把消息交给每一个绑定的队列，而是根据消息的 Routing Key 进行判断，只有队列的 Routingkey 与消息的 Routing key 完全一致，才会接收到消息
+
 
 
 ### 配置队列
@@ -652,10 +730,23 @@ public class DirectSenderController {
 
 ```
 
+### 总的来说就一句话：
+
+Routing 模式要求队列在绑定交换机时要指定 routing key，消息会转发到符合 routing key 的队列。
+
 
 ## Topics
 
 ![topics](./imgs/topics.png)
+
+
+通配符模式(Topic)是在路由模式的基础上，给队列绑定带通配符的路由关键字，只要消息的RoutingKey能实现通配符匹配，就会将消息转发到该队列。通配符模式比路由模式更灵活，使用topic交换机.
+
+`通配符规则`:
+
+1. 消息设置RoutingKey时，RoutingKey由多个单词构成，中间以 . 分割。
+2. 队列设置RoutingKey时， # 可以匹配任意多个单词， * 可以匹配任意一个单词。
+
 
 ### 配置队列
 
@@ -772,6 +863,8 @@ public class TopicsSenderController {
 
 
 ```
+
+**总述**: topics模式比routing模式要更加灵活，笼统的说就是routing模式加上通配符
 
 ## RabbitMQ其他特性
 
