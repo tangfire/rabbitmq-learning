@@ -20,5 +20,4 @@ public class FanoutReceiveHandler {
         System.out.println("fanout消费者2收到消息:"+msg);
     }
 
-
 }
